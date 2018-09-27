@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.states {
+  fill: #ccc;
+  stroke: #fff;
+}
+
+.symbol {
+  fill: steelblue;
+  fill-opacity: .8;
+  stroke: #fff;
+}
+
+</style>
+<body>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<!-- <script src="script.js"></script> -->
+	<script src="https://d3js.org/topojson.v2.min.js"></script>
+	<script src="https://d3js.org/d3-dsv.v1.min.js"></script>
+	<script src="https://d3js.org/d3-queue.v1.min.js"></script>
+	<script>
+
+		var width = 960,
+		    height = 500,
+		    radius = 30;
+
+		var projection = d3.geo.albersUsa();
+		var path = d3.geo.path()
+			.projection(projection)
+			.pointRadius(1.5);
+
+		var svg = d3.select("body").append("svg")
+		    .attr("width", width)
+		    .attr("height", height);
+
+		var piechart = svg.append("g");
+
+		var arc = d3.arc()
+			.innerRadius(0)
+			.outerRadius(radius);
+			
+		var pie = d3.pie()
+					.sort(null)
+					.value(function(d) { return d; });
+					
+		var color = d3.schemeCategory10;
+
+		d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunDeaths.csv", function(error, data) {
+		  if (error) throw error;
+		  
+		//   var points = piechart.selectAll("g")
+		//   	.data(data)
+		//   	.enter()
+		//   	.append("g")
+		// 	.attr("transform",function(data) { return "translate("+projection([data.lon,data.lat])+")" })
+		// 	.attr("class", "pies")
+
+		// points.append("text")
+		// 	.attr("y", -radius - 5)
+		// 	.text(function(data) { return data.state })
+		// 	.style('text-anchor','middle');
+
+		// var pies = points.selectAll(".pies")
+		// 	.data(function(data) { return pie(data.data.t(['-'])); })
+		// 	.enter()
+		// 	.append('g')
+		// 	.attr('class','arc');
+	
+		// pies.append("path")
+		//   .attr('d',arc)
+	 //      .attr("fill",function(data,i){
+	 //           return color[i+1];     
+  //     });	
+		  // projection([data.long, data.lat]);
+		  // var coords = projection([data.long, data.lat]);
+		  // var x = coords[0];
+		  // var y = coords[1];
+
+		  // for(var i = 0; i<100; i++){
+		  // 	console.log(projection([data[i].lat, data[i].long]), projection(projection([data[i].lat, data[i].long])));
+		  // 	// console.log(data[i].long);
+		  // }
+		//   svg.selectAll("circle")
+		// // .data([aa,bb]).enter()
+		// .append("circle")
+		// .attr("cy", function(data) { return Vis.projection([data.long, data.lat])[0]; }) 
+  //     	.attr("cx", function(data) { return Vis.projection([data.long, data.lat])[1]; })
+		// // .attr("cx", function (d) { console.log(projection(d)); return projection(d)[0]; })
+		// // .attr("cy", function (d) { return projection(d)[1]; })
+		// .attr("r", "8px")
+		// .attr("fill", "red")
+		for(var i=0; i<data.length; i++){
+		svg.append("circle")
+			.attr('class', 'symbol')
+			// .attr("fill opacity", "0.8")
+			.attr("r",5)
+			
+			.attr("transform", function() {return "translate(" + projection([data[i].long,data[i].lat]) + ")";
+		});}
+
+			var male = 0;
+			var female = 0;
+			for (var i = 0; i < data.length; i++) {
+				if (data[i].gender == 'M') {
+					male++;
+				}
+				else {
+					female++;
+				}
+				
+			}
+			console.log(male, female);
+		})
+
+
+
+		queue()
+		    .defer(d3.json, "https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/us.json")
+		    .await(ready);
+
+		function ready(error, us) {
+		  if (error) throw error;
+
+		  svg.append("path")
+		    	.attr("class", "states")
+		    	.datum(topojson.feature(us, us.objects.states))
+		    	.attr("d", path);
+		}
+
+	</script>
