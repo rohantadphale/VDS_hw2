@@ -30,8 +30,27 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <!-- <script src="https://d3js.org/d3.v3.min.js"></script> -->
 <script src="https://d3js.org/topojson.v2.min.js"></script>
-
+<!-- <script src="https://d3js.org/us-10m.v1.json"></script> -->
+<script src="https://d3js.org/d3-queue.v1.min.js"></script>
 <script>
+queue()
+  .defer(d3.json, "https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/us.json")
+  .await(ready);
+function ready(error, us) {
+d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
+  if (error) throw error;
+
+  svg.append("g")
+      .attr("class", "states")
+    .selectAll("path")
+    .data(topojson.feature(us, us.objects.states).features)
+    .enter().append("path")
+      .attr("d", path);
+
+  svg.append("path")
+      .attr("class", "state-borders")
+      .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; })));
+});
 
 var svg = d3.select("svg");
 
@@ -64,11 +83,24 @@ d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunD
       svg.append("circle")
       .attr('class', 'symbol')
       .attr("r",5)
-      .attr("transform", function() {return "translate(" + projection([d.lat,d.lng]) + ")";});
-      console.log(d.lng);
-      // break;
+      .attr("transform", function() {return "translate(" + projection([d.lng,d.lat]) + ")";});
+      // console.log("count", d.count);
     });
 
+    var dataMap = stateStats(data);
+    console.log("dataMap", dataMap);
+      function stateStats(data){
+        var stateStat = d3.nest()
+          .key(function(d) {return d.state;})
+          .rollup(function(v) {return {
+            pMale: d3.sum( v, function(d) {return d.isMale;})/v.length,
+            lat: d3.mean( v, function(d) {return d.lat}),
+            lon: d3.mean( v, function(d) {return d.lng}),
+            avgAge: d3.mean( v, function(d) {return d.age;}),
+            count: v.length,};})
+          .map(data, d3.map);
+        return(stateStat);
+      }
     // for(var i=0; i<data.length; i++){
     // svg.append("circle")
     //   .attr('class', 'symbol')
@@ -76,20 +108,6 @@ d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunD
     //   .attr("transform", function() {return "translate(" + projection([data[i].long,data[i].lat]) + ")";});
     // }
 });
-
-d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
-  if (error) throw error;
-
-  svg.append("g")
-      .attr("class", "states")
-    .selectAll("path")
-    .data(topojson.feature(us, us.objects.states).features)
-    .enter().append("path")
-      .attr("d", path);
-
-  svg.append("path")
-      .attr("class", "state-borders")
-      .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; })));
-});
+}
 
 </script>
