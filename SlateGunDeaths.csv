@@ -1,4 +1,4 @@
-victimID,date,name,gender,age,ageGroup,city,state,lat,long,url
+victimID,date,name,gender,age,ageGroup,city,state,lat,lng,url
 "1","2012-12-14","Antida Archuleta","F","20","3","Westminster","CO","39.893668500000000","-105.072111818405000","http://www.9news.com/rss/story.aspx?storyid=305252"
 "2","2012-12-14","Charlotte Bacon","F","6","1","Newtown","CT","41.412322500000000","-73.311423580294500","http://www.cnn.com/2012/12/15/us/connecticut-shooting-victims/index.html"
 "3","2012-12-14","Olivia Engel","F","6","1","Newtown","CT","41.412322500000000","-73.311423580294500","http://www.cnn.com/2012/12/15/us/connecticut-shooting-victims/index.html"

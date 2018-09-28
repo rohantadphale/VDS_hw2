@@ -2,9 +2,9 @@
 <meta charset="utf-8">
 <style>
 
-path:hover {
+/*.states:hover {
 	fill-opacity: .7;
-}
+}*/
 
 .states {
   fill: #ccc;
@@ -13,7 +13,7 @@ path:hover {
 
 .symbol {
   fill: steelblue;
-  fill-opacity: .8;
+  fill-opacity: .7;
   stroke: #fff;
 }
 
@@ -41,71 +41,32 @@ path:hover {
 
 		var g2 = svg.append("g");
 
-		var arc = d3.arc()
-			.innerRadius(0)
-			.outerRadius(radius);
-			
-		var pie = d3.pie()
-					.sort(null)
-					.value(function(d) { return d; });
-					
-		var color = d3.schemeCategory10;
-
 		d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunDeaths.csv", function(error, data) {
 		  if (error) throw error;
 		  
-		  var points = g2.selectAll("g")
+		var points = g2.selectAll("g")
 		.data(data)
 		.enter()
 		.append("g")
 		// .attr("transform",function(d) { return "translate("+projection([d[10].long,d[10].lat])+")" })
-		.attr("class","pies")
 		
-	// points.append("text")
-	// 	.attr("y", -radius - 5)
-	// 	.text(function(d) { return d.label })
-	// 	.style('text-anchor','middle');
-		
-	// var pies = points.selectAll(".pies")
-	// 	.data(function(d) { return [male, female]; })
-	// 	.enter()
-	// 	.append('g')
-	// 	.attr('class','arc');
-	
-	// pies.append("path")
-	//   .attr('d',arc)
- //      .attr("fill",function(d,i){
- //           return color[i+1];
-
-
-
-
-		for(var i=0; i<data.length; i++){
-		svg.append("circle")
-			.attr('class', 'symbol')
-			.attr("r",5)
-			.attr("transform", function() {return "translate(" + projection([data[i].long,data[i].lat]) + ")";		
-		});}
-
-			var male = 0;
-			var female = 0;
-			for (var i = 0; i < data.length; i++) {
-				if (data[i].state == 'CO') {
-					if (data[i].gender == 'M') {
-					male++;
-					}
-					else {
-						female++;
-					}
-				}
-				
-				
-			}
-			console.log(male, female);
-		})
-
-
-
+		data.forEach(function(d){
+			d.age = +d.age;
+			d.ageGroup = +d.ageGroup;
+			d.lat = +d.lat;
+			d.lng = +d.lng;
+			d.isMale = (d.gender != "M")? 0 : 1;
+			d.date = new Date(d.date);
+			console.log(d.isMale);
+		});
+		// for(var i=0; i<data.length; i++){
+		// svg.append("circle")
+		// 	.attr('class', 'symbol')
+		// 	.attr("r",5)
+		// 	.attr("transform", function() {return "translate(" + projection([data[i].long,data[i].lat]) + ")";	
+		// });
+		// }
+});
 		queue()
 		    .defer(d3.json, "https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/us.json")
 		    .await(ready);
@@ -123,6 +84,6 @@ path:hover {
 
 
 		}
-		
+	
 
 	</script>
