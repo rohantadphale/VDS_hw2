@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<style>
+.states :hover {
+  fill-opacity: .2;
+}
+.states {
+  fill: #ccc;
+  stroke: #fff;
+}
+.symbol {
+  fill: steelblue;
+  fill-opacity: .8;
+  stroke: #fff;
+}
+.state-borders {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+</style>
+<svg width="960" height="600"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<!-- <script src="https://d3js.org/d3.v3.min.js"></script> -->
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<!-- <script src="https://d3js.org/us-10m.v1.json"></script> -->
+<script src="https://d3js.org/d3-queue.v1.min.js"></script>
+<script>
+queue()
+  .defer(d3.json, "https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/us.json")
+  .await(ready);
+function ready(error, us) {
+d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
+  if (error) throw error;
+  svg.append("g")
+      .attr("class", "states")
+    .selectAll("path")
+    .data(topojson.feature(us, us.objects.states).features)
+    .enter().append("path")
+      .attr("d", path);
+  svg.append("path")
+      .attr("class", "state-borders")
+      .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; })));
+});
+
+var svg = d3.select("svg");
+var width = 960,
+    height = 500,
+    radius = 30;
+var projection = d3.geoAlbersUsa()
+  .translate([width/2, height/1.67])
+  .scale([1275]);
+var path = d3.geoPath();
+  // .projection(projection);
+  // .pointRadius(1.5);
+var g2 = svg.append("g");
+
+
+d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunDeaths.csv", function(error, data) {
+  if (error) throw error;
+  var points = g2.selectAll("g")
+    .data(data)
+    .enter()
+    .append("g")
+    data.forEach(function(d){
+      d.age = +d.age;
+      d.ageGroup = +d.ageGroup;
+      d.lat = +d.lat;
+      d.lng = +d.lng;
+      d.isMale = (d.gender != "M")? 0 : 1;
+      d.date = new Date(d.date);
+      // console.log(d.isMale);
+      svg.append("circle")
+      .attr('class', 'symbol')
+      .attr("r",5)
+      .attr("transform", function() {return "translate(" + projection([d.lng,d.lat]) + ")";});
+      // console.log("count", d.count);
+    });
+    var dataMap = stateStats(data);
+    console.log("dataMap", dataMap);
+      function stateStats(data){
+        var stateStat = d3.nest()
+          .key(function(d) {return d.state;})
+          .rollup(function(v) {return {
+            pMale: d3.sum( v, function(d) {return d.isMale;})/v.length,
+            lat: d3.mean( v, function(d) {return d.lat}),
+            lon: d3.mean( v, function(d) {return d.lng}),
+            avgAge: d3.mean( v, function(d) {return d.age;}),
+            count: v.length,};})
+          .map(data, d3.map);
+        return(stateStat);
+      }
+    // for(var i=0; i<data.length; i++){
+    // svg.append("circle")
+    //   .attr('class', 'symbol')
+    //   .attr("r",5)
+    //   .attr("transform", function() {return "translate(" + projection([data[i].long,data[i].lat]) + ")";});
+    // }
+    pi(dataMap);
+
+    var arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius);
+            
+    var pie = d3.pie()
+            .sort(null)
+            .value(function(d) { return d; });
+            
+    var color = d3.schemeCategory10;    
+
+    var points = g2.selectAll("g")
+        // .data(water)
+        .enter()
+        .append("g")
+        .attr("transform",function(d) { return "translate("+projection([dataMap.lon,dataMap.lat])+")" })
+        .attr("class","pies")
+
+    points.append("text")
+        .attr("y", -radius - 5)
+        .text(function(d) { return d.label })
+        .style('text-anchor','middle');
+
+    var pies = points.selectAll(".pies")
+        .data(function(d) { return pie(['(dataMap.pMale)*100', '100-(dataMap.pMale)']); })
+        .enter()
+        .append('g')
+        .attr('class','arc');   
+
+});
+}
+
+function pi(dataMap){
+dataMap.each(function(d){
+    console.log("1");
+});
+}
+</script>

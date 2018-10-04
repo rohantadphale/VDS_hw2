@@ -2,7 +2,15 @@
 <style>
 
 .states :hover {
-  fill-opacity: .7;
+  fill-opacity: .1;
+}
+
+.male {
+    color: #90CAF9;
+}
+
+.female {
+    color: #F48FB1;
 }
 
 .states {
@@ -30,11 +38,41 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <!-- <script src="https://d3js.org/d3.v3.min.js"></script> -->
 <script src="https://d3js.org/topojson.v2.min.js"></script>
-<!-- <script src="https://d3js.org/us-10m.v1.json"></script> -->
 <script src="https://d3js.org/d3-queue.v1.min.js"></script>
 <script>
+
+var svg = d3.select("svg");
+var metorScale = d3.scale.pow().domain([0, 300]);
+var colorScale = d3.scale.linear().domain([1400, 1800, 1860, 1940, 2015]);
+var color = d3.scale.category20c();
+var width = 960,
+    height = 500,
+    radius = 30;
+
+var projection = d3.geoAlbersUsa()
+  .translate([width/2, height/1.67])
+  .scale([1275]);
+var path = d3.geoPath();
+  // .projection(projection);
+  // .pointRadius(1.5);
+// var g2 = svg.append("g");
+var g1 = svg.append("g")
+    .attr('class', 'features');
+var color = d3.scaleOrdinal(['#F48FB1','#90CAF9','#424242']);
+// Pie chart
+
+// var males = 0, females = 0;
+
+// var arc = d3.arc()
+//   .innerRadius(0)
+//   .outerRadius(radius);
+// var pie = d3.pie()
+//   .sort(null)
+//   .value(function(d) { return d; });
+// var color = d3.schemeCategory10;
+
 queue()
-  .defer(d3.json, "https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/us.json")
+  .defer(d3.json, "https://d3js.org/us-10m.v1.json")
   .await(ready);
 function ready(error, us) {
 d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
@@ -52,26 +90,20 @@ d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
       .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; })));
 });
 
-var svg = d3.select("svg");
-
-var width = 960,
-    height = 500,
-    radius = 30;
-
-var projection = d3.geoAlbersUsa()
-  .translate([width/2, height/1.67])
-  .scale([1275]);
-var path = d3.geoPath();
-  // .projection(projection);
-  // .pointRadius(1.5);
-var g2 = svg.append("g");
 d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunDeaths.csv", function(error, data) {
   if (error) throw error;
 
-  var points = g2.selectAll("g")
-    .data(data)
-    .enter()
-    .append("g")
+    // var points = g2.selectAll("g")
+    //     .data(data)
+    //     .enter()
+    //     .append("g")
+    //     .attr("transform",function(d) { return "translate("+projection([d.lon,d.lat])+")" })
+    //     .attr("class","pies")
+    // points.append("text")
+    //     .attr("y", -radius - 5)
+    //     .text(function(d) { return d.state })
+    //     .style('text-anchor','middle');
+
     data.forEach(function(d){
       d.age = +d.age;
       d.ageGroup = +d.ageGroup;
@@ -79,13 +111,25 @@ d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunD
       d.lng = +d.lng;
       d.isMale = (d.gender != "M")? 0 : 1;
       d.date = new Date(d.date);
-      // console.log(d.isMale);
+
+      // console.log(pieData);
       svg.append("circle")
       .attr('class', 'symbol')
       .attr("r",5)
       .attr("transform", function() {return "translate(" + projection([d.lng,d.lat]) + ")";});
       // console.log("count", d.count);
     });
+
+    // var pies = points.selectAll(".pies")
+    //     .data(function(d) { return pie([males, females]); })
+    //     .enter()
+    //     .append('g')
+    //     .attr('class','arc');
+      
+    // pies.append("path")
+    //     .attr('d',arc)
+    //     .attr("fill",function(d,i){return color[i+1];});  
+    
 
     var dataMap = stateStats(data);
     console.log("dataMap", dataMap);
@@ -107,7 +151,169 @@ d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunD
     //   .attr("r",5)
     //   .attr("transform", function() {return "translate(" + projection([data[i].long,data[i].lat]) + ")";});
     // }
+    plotData();
 });
 }
+
+function pie(data){
+    d3.json("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/us-state-centroids.json", function(error, stateData) {
+            for(var i = 0; i < stateData.length; i++){
+                var points = dataPoints.selectAll("g")
+                .data(genderData)
+                .enter()
+                .append("g")
+                .attr("transform", function(d) {
+                    var latLng = stateData.coordinates;
+                    return "translate("+projection(latLng)+")"
+                })
+                .attr("class","pies");
+            
+    var dataPoints = svg.append("g")
+                .attr("class","pieData");
+
+            var pie = d3.pie()
+                .value(function(d) {
+                    return d.value;
+                });
+                var points = dataPoints.selectAll("g")
+                .data(genderData)
+                .enter()
+                .append("g")
+                .attr("transform", function(d) {
+                    var latLng = [-88.380238,41.278216];//getStateLatLng(d.key);
+                    return "translate("+projection(latLng)+")"
+                })
+                .attr("class","pies");
+                var pies = points.selectAll(".pies")
+                .data(function(d) {
+                    var pieSize = 30;//getPieSize(d.key, noOfDeaths);
+                    d.values.map(function(t) {
+                        t.pieSize = pieSize;
+                        t.state = d.key;
+                        return t;
+                    });
+                    return pie(d.values);
+                })
+                .enter()
+                .append("g")
+                .attr("class", "arc")
+                .style("opacity", 0.8);
+
+            var arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(function(d){
+                    return d.data.pieSize;
+                });
+
+            pies.append("path")
+                .attr("d", arc)
+                .attr("fill", function(d, i){
+                    if(d.gender === "M") return color(1);
+                    else if(d.gender === "F") return color(0);
+                    // else if(d.data.key === "U") return color(2);
+                })
+                // .on("click", clicked);
+                // .on("mouseover", showTooltipPie);
+        // }//else
+    }});
+}
+
+
+function plotData(){
+    d3.csv("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/SlateGunDeaths.csv", function(error, data){
+        
+            
+            //show or hide country-wise data of deaths on click of particular state
+            noOfDeaths = d3.nest()
+                .key(function(d) { return d.state; })
+                .rollup(function(v) {return v.length})
+                .entries(data);
+            console.log(noOfDeaths);
+
+            genderData = deathsByGender(data);
+
+            // Pie chart variables:
+            // var dataPoints = svg.append("g")
+            //     .attr("class","pieData");
+
+            // var pie = d3.pie()
+            //     .value(function(d) {
+            //         return d.value;
+            //     });
+
+            // d3.json("https://raw.githubusercontent.com/rohantadphale/VDS_hw2/master/us-state-centroids.json", function(error, stateData) {
+            // for(var i = 0; i < stateData.length; i++){
+            //     var points = dataPoints.selectAll("g")
+            //     .data(genderData)
+            //     .enter()
+            //     .append("g")
+            //     .attr("transform", function(d) {
+            //         var latLng = stateData.coordinates;
+            //         return "translate("+projection(latLng)+")"
+            //     })
+            //     .attr("class","pies");
+            // }
+            // });
+        
+            // var points = dataPoints.selectAll("g")
+            //     .data(genderData)
+            //     .enter()
+            //     .append("g")
+            //     .attr("transform", function(d) {
+            //         var latLng = [-88.380238,41.278216];//getStateLatLng(d.key);
+            //         return "translate("+projection(latLng)+")"
+            //     })
+            //     .attr("class","pies");
+
+            // points.append("circle")
+            //     .attr("r", 3)
+            //     .style("fill", "red")
+            //     .on("mouseover", showTooltip)
+    //         var pies = points.selectAll(".pies")
+    //             .data(function(d) {
+    //                 var pieSize = 30;//getPieSize(d.key, noOfDeaths);
+    //                 d.values.map(function(t) {
+    //                     t.pieSize = pieSize;
+    //                     t.state = d.key;
+    //                     return t;
+    //                 });
+    //                 return pie(d.values);
+    //             })
+    //             .enter()
+    //             .append("g")
+    //             .attr("class", "arc")
+    //             .style("opacity", 0.8);
+
+    //         var arc = d3.arc()
+    //             .innerRadius(0)
+    //             .outerRadius(function(d){
+    //                 return d.data.pieSize;
+    //             });
+
+    //         pies.append("path")
+    //             .attr("d", arc)
+    //             .attr("fill", function(d, i){
+    //                 if(d.gender === "M") return color(1);
+    //                 else if(d.gender === "F") return color(0);
+    //                 // else if(d.data.key === "U") return color(2);
+    //             })
+    //             // .on("click", clicked);
+    //             // .on("mouseover", showTooltipPie);
+    //     // }//else
+    // });//gunDeaths-dataset
+});
+
+function deathsByGender(data){
+    // console.log(data)
+    var genderData;
+    genderData = d3.nest()
+        .key(function(d) { return d.state; })
+        .key(function(g) { return g.gender; })
+        .rollup(function(v) { return v.length; })
+        .sortKeys(d3.ascending)
+        .entries(data);
+    return genderData;
+}
+
 
 </script>
